@@ -1,8 +1,13 @@
 import csv
+import sys
 
 import requests
 from bs4 import BeautifulSoup
 import json
+
+csvPath = sys.argv[0]
+outputPath1 = sys.argv[1]
+outputPath2 = sys.argv[2]
 
 # Beharrezkoak diren emojiak dituzten url-en lista
 urls = {'https://emojipedia.org/es/smileys#list', 'https://emojipedia.org/es/personas#list', 'https://emojipedia.org/es/search?q=corazón'}
@@ -75,8 +80,8 @@ def modify_csv_with_phrases(csv_path, emoji_set, output_path):
             writer.writerow(new_row)
 
 # Modifikazioak egin
-modify_csv_with_phrases('Datuak/train.csv', emoji_izenak, 'Datuak/train_modified_partial.csv')
+modify_csv_with_phrases(csvPath, emoji_izenak, outputPath1)
 # Cara Sonriendo kasu berezia da beraz beste batean procesatuko dugu
-modify_csv_with_phrases('Datuak/train_modified1.csv', ['cara sonriendo'], 'Datuak/train_modified.csv')
+modify_csv_with_phrases(outputPath1, ['cara sonriendo'], outputPath2)
 print(
     "El archivo CSV ha sido modificado para reemplazar frases que coinciden con 'emoji.txt', y guardado como 'test_modified.csv'.")
