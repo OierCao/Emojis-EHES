@@ -4,13 +4,12 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
-emoji_class = 'Link_link-wrapper__C33u_ Emoji_emoji__6sYSR __variable_c30de8 EmojisList_emojis-list-item__MGP6t'
-# URL de la página que contiene la lista de emojis
+# Beharrezkoak diren emojiak dituzten url-en lista
 urls = {'https://emojipedia.org/es/smileys#list', 'https://emojipedia.org/es/personas#list', 'https://emojipedia.org/es/search?q=corazón'}
 
 emoji_izenak = []
 
-for url in urls:
+for url in urls: # URL bakoitzeko Web Scraping bat egin emoji lista lortzeko
     metodoa = "GET"
     goiburuak = goiburuak = {'Host': 'emojipedia.org'}
     erantzuna = requests.request(metodoa, url, headers=goiburuak, allow_redirects=False)
@@ -21,16 +20,16 @@ for url in urls:
     script_tag = soup.find('script', id='__NEXT_DATA__')
 
     if script_tag:
-        # Parse JSON content
+        # DAtuak dituen JSON-etik datuak erauzi
         json_data = json.loads(script_tag.string)
 
         kategoriak = json_data['props']['pageProps']['dehydratedState']['queries']
         print(url)
 
-        if url == 'https://emojipedia.org/es/search?q=corazón':
+        if url == 'https://emojipedia.org/es/search?q=corazón': # URL hau kasu berezi bat denez era ezberdin batean egingo da
             kategoriak = json_data['props']['pageProps']['dehydratedState']['queries'][3]['state']['data']
-            for i in kategoriak:
-                izena = str(i['title']).lower()
+            for emoji in kategoriak:
+                izena = str(emoji['title']).lower()
                 emoji_izenak.append(izena)
         else:
             for idx in range(len(kategoriak)):
@@ -43,15 +42,17 @@ for url in urls:
                                 emoji_izenak.append(izena)
                     pass
                 except Exception as e:
-                    print ('nop')
+                    pass
 
 
+# Gorde emojien lista emoji.txt artxiboan
 with open('emoji.txt', 'w', newline='', encoding='utf-8') as outfile:
     escritor = csv.writer(outfile)
     for emoji_name in emoji_izenak:
         if emoji_name != 'cara sonriendo':
             escritor.writerow([emoji_name])
 
+# csv-artxiboa aldatuko duen metodoa emojiak gu nahi dugun eran agertzeko adb.: 'cara_sonriendo'
 def modify_csv_with_phrases(csv_path, emoji_set, output_path):
     import csv
     import re
@@ -64,19 +65,18 @@ def modify_csv_with_phrases(csv_path, emoji_set, output_path):
         for row in reader:
             new_row = []
             for cell in row:
-                # Para cada celda, revisa cada emoji en el conjunto
                 modified_cell = cell
                 for emoji in emoji_set:
-                    # Crear una expresión regular para encontrar la coincidencia exacta de la palabra/frase
-                    # Esto evita reemplazos parciales en palabras que contienen las frases buscadas
+                    # Expresio erregular bat sortu emojiak lortzeko
                     regex_pattern = r'\b' + re.escape(emoji) + r'\b'
-                    # Reemplaza la frase encontrada con su versión con guiones bajos
+                    # Aurkitutako esaldia ordezten du, bere bertsioarekin, gidoi baxuekin
                     modified_cell = re.sub(regex_pattern, emoji.replace(' ', '_'), modified_cell)
                 new_row.append(modified_cell)
             writer.writerow(new_row)
 
-# Asume que las funciones read_emoji_file y las rutas de archivo están definidas como antes
-modify_csv_with_phrases('Datuak/train.csv', emoji_izenak, 'Datuak/train_modified1.csv')
-modify_csv_with_phrases('Datuak/train_modified1.csv', ['cara sonriendo'], 'Datuak/train_modified2.csv')
+# Modifikazioak egin
+modify_csv_with_phrases('Datuak/train.csv', emoji_izenak, 'Datuak/train_modified_partial.csv')
+# Cara Sonriendo kasu berezia da beraz beste batean procesatuko dugu
+modify_csv_with_phrases('Datuak/train_modified1.csv', ['cara sonriendo'], 'Datuak/train_modified.csv')
 print(
     "El archivo CSV ha sido modificado para reemplazar frases que coinciden con 'emoji.txt', y guardado como 'test_modified.csv'.")
